@@ -1,0 +1,131 @@
+services:
+  # MySQL Database
+  mysql:
+    image: mysql:8.0
+    container_name: liquid-mysql
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootpassword}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-test_db}
+      MYSQL_USER: ${MYSQL_USER:-test_user}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-test_password}
+    ports:
+      - "${MYSQL_PORT:-3306}:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - liquid-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+
+  # Initialize MySQL with dummy data
+  mysql_initializer:
+    build:
+      context: ./database
+      dockerfile: Dockerfile
+    container_name: mysql-initializer
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      MYSQL_HOST: mysql
+      MYSQL_PORT: 3306
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootpassword}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-test_db}
+      MYSQL_USER: ${MYSQL_USER:-test_user}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-test_password}
+    networks:
+      - liquid-network
+  # MCP Server
+  mcp-server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: liquid-mcp-server
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      # MySQL connection
+      MYSQL_HOST: mysql
+      MYSQL_PORT: 3306
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-test_db}
+      MYSQL_USER: ${MYSQL_USER:-test_user}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-test_password}
+      # MCP server transport
+      MCP_TRANSPORT: sse
+      MCP_HOST: 0.0.0.0
+      MCP_PORT: 8000
+      # Perplexity API
+      PPLX_API_KEY: ${PPLX_API_KEY}
+    ports:
+      - "8000:8000"
+    volumes:
+      # Mount source for development
+      - ./server:/app
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - liquid-network
+    healthcheck:
+      test: ["CMD", "ping", "localhost"] 
+      interval: 5s
+      timeout: 3s
+      retries: 5
+   
+  # MCP Client (API Backend)
+  mcp-client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    container_name: liquid-mcp-client
+    restart: unless-stopped
+    ports:
+      - "8080:8000"
+    env_file:
+      - .env
+    environment:
+      # MCP server connection
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      MCP_SERVER_URL: http://mcp-server:8000/mcp
+      CHAT_API_HOST: 0.0.0.0
+      CHAT_API_PORT: 8000
+    volumes:
+      # Mount source for development
+      - ./client:/app
+    # depends_on:
+    #   mcp-server:
+    #     condition: service_healthy
+    networks:
+      - liquid-network
+
+  # Frontend (Next.js)
+  web:
+    build: ./web
+    container_name: nextjs_app
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    environment:
+      - NODE_ENV=production
+    restart: unless-stopped
+    networks:
+      - liquid-network
+
+networks:
+  liquid-network:
+    driver: bridge
+    name: liquid-network
+
+volumes:
+  mysql_data:
+    driver: local
+    name: liquid_mysql_data
