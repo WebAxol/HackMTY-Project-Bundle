@@ -480,17 +480,6 @@ cat .env
 # Reiniciar servicios
 docker-compose down && docker-compose up -d
 ```
-
-## Documentación
-
-### Guías del Proyecto
-- [CHAT_API.md](CHAT_API.md) - 🌟 **API REST e Interfaz Web** (empezar aquí)
-- [SCHEMA_TOOLS.md](SCHEMA_TOOLS.md) - Herramientas de exploración de esquema
-- [TRANSPORT.md](TRANSPORT.md) - Configuración de transporte MCP
-- [SECURITY.md](SECURITY.md) - Mejores prácticas de seguridad
-- [STRUCTURE.md](STRUCTURE.md) - Arquitectura del proyecto
-- [README.Docker.md](README.Docker.md) - Guía detallada de Docker
-
 ### Referencias Externas
 - [FastMCP](https://github.com/jlowin/fastmcp) - Framework MCP usado
 - [OpenAI Function Calling](https://platform.openai.com/docs/guides/function-calling) - Integración ChatGPT
