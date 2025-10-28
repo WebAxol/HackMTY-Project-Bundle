@@ -1,4 +1,4 @@
-# Liquid - MCP MySQL Server & Client
+# ReportMind - MCP MySQL Server & Client
 
 Sistema modular para ejecutar queries SQL en MySQL usando el protocolo MCP (Model Context Protocol) con integración a ChatGPT y interfaz web interactiva.
 
