@@ -1,4 +1,4 @@
-# ReportMind - MCP MySQL Server & Client
+# ReportMind - Finanzas potenciadas por AI
 
 Sistema modular para ejecutar queries SQL en MySQL usando el protocolo MCP (Model Context Protocol) con integración a ChatGPT y interfaz web interactiva.
 
